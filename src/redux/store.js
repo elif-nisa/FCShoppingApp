@@ -49,7 +49,7 @@ const cartReducer = (state = initialState, action) => {
         case 'DELETE_SELECTED':
       return {
         ...state,
-        cart: state.cart.filter(item => !action.payload.includes(item.id)), // Seçilen ürünleri sil
+        cart: state.cart.filter(item => !action.payload.includes(item.id)),
       };
     default:
       return state;
