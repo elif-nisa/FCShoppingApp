@@ -7,11 +7,14 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import NewPassword from './src/screens/NewPassword';
 import ProductDetail from './src/screens/ProductDetail';
 import BasketScreen from './src/screens/BasketScreen';
+import { Provider } from 'react-redux';
+import store from './src/redux/store';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
+    <Provider store={store}>
     <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Login"
@@ -25,5 +28,6 @@ export default function App() {
         <Stack.Screen name="BasketScreen" component={BasketScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+     </Provider>
   );
 }

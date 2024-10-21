@@ -10,65 +10,50 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { AntDesign, EvilIcons, Entypo , Octicons} from 'react-native-vector-icons';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 const BasketScreen = ({ route, navigation }) => {
   const { userID } = route.params;
-  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cartID, setCartID] = useState(true);
   const [discountedTotal, setDiscountedTotal] = useState();
   const [deleteAlert, setDeleteAlert] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const dispatch = useDispatch();
+  const cartItems = useSelector(state => state.cart.cartItems);
+  const [selectedItems, setSelectedItems] = useState(cartItems.map(item => item.id));
+ 
 
   const calculateTotal = () => {
     let total = 0;
     cartItems.forEach(item => {
-      if (selectedItems.includes(item.id)) { 
+      if (selectedItems.includes(item.id)) {
         const discountedPrice = item.price * (1 - item.discountPercentage / 100);
-        total += discountedPrice * item.quantity; 
+        total += discountedPrice * item.quantity;
       }
     });
     setDiscountedTotal(total);
   };
-  const updateCart = async (productId, newQuantity) => {
-    try {
-      const response = await axios.put(
-        `https://dummyjson.com/carts/${cartID}`,
-        {
-          products: [
-            {
-              id: productId,
-              quantity: newQuantity,
-            },
-          ],
-        }
-      );
-      console.log(response.data);
-    } catch (error) {
-      console.error( error);
-    }
+  const updateQuantity = (productId, newQuantity) => {
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id: productId, quantity: newQuantity } });
   };
-  const handleQuantityChange = (productId, quantity) => {
-    const newQuantity = Math.max(0, quantity);
-    updateCart(productId, newQuantity);
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
+ 
   const getCartData = async () => {
     try {
       const response = await axios.get(`https://dummyjson.com/carts/${userID}`);
-      setCartItems(response.data.products);
-      setCartID(response.data.id);
-      const initialSelectedItems = response.data.products.map(product => product.id);
-      setSelectedItems(initialSelectedItems);
+      dispatch({ type: 'SET_CART_ITEMS', payload: response.data.products });
       setLoading(false);
     } catch (error) {
       console.error(error);
       setLoading(false);
     }
+  };
+  const handleSelectItem = (item) => {
+    if (selectedItems.includes(item.id)) {
+      setSelectedItems(selectedItems.filter(id => id !== item.id));
+    } else {
+      setSelectedItems([...selectedItems, item.id]);
+    }
+    calculateTotal();
   };
   const selectAllItems = () => {
     if (selectedItems.length === cartItems.length) {
@@ -93,24 +78,13 @@ const BasketScreen = ({ route, navigation }) => {
       </View>
     );
   }
-  const handleSelectItem = (item) => {
-    let updatedSelectedItems;
-    if (selectedItems.includes(item.id)) {
-      updatedSelectedItems = selectedItems.filter(id => id !== item.id);
-    } else {
-      updatedSelectedItems = [...selectedItems, item.id];
-    }
-    setSelectedItems(updatedSelectedItems);
-    calculateTotal(updatedSelectedItems);
-  };
+ 
   const handleDeleteSelected = () => {
-    const remainingProducts = cartItems.filter(product => !selectedItems.includes(product.id));
-    setCartItems(remainingProducts);
+    dispatch({ type: 'DELETE_SELECTED', payload: selectedItems });
     setSelectedItems([]);
-    setDiscountedTotal(0); 
+    setDiscountedTotal(0);
     setDeleteAlert(false);
-    
-  }; 
+  };
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f3f3' }}>
       <View
@@ -220,7 +194,7 @@ const BasketScreen = ({ route, navigation }) => {
               }}
             >
               <View style={{flexDirection:'row', alignItems:'center'}}>
-                <TouchableOpacity onPress={() => handleSelectItem(item)}  style={{marginHorizontal:10}}>
+                <TouchableOpacity  onPress={() => handleSelectItem(item)}  style={{marginHorizontal:10}}>
                 <Octicons  name={selectedItems.includes(item.id) ? "check-circle" : "circle"} size={25} color='#979797'/>
                 </TouchableOpacity>
               <Text
@@ -327,9 +301,7 @@ const BasketScreen = ({ route, navigation }) => {
                       }}
                     >
                       <TouchableOpacity
-                        onPress={() => item.quantity > 1? 
-                          handleQuantityChange(item.id, item.quantity - 1): null
-                        }
+                        onPress={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}
                         style={{
                           flex: 1,
                           justifyContent: 'center',
@@ -348,9 +320,7 @@ const BasketScreen = ({ route, navigation }) => {
                         <Text>{item.quantity}</Text>
                       </View>
                       <TouchableOpacity
-                        onPress={() =>
-                          handleQuantityChange(item.id, item.quantity + 1)
-                        }
+                        onPress={() => updateQuantity(item.id, item.quantity + 1)}
                         style={{
                           flex: 1,
                           justifyContent: 'center',
