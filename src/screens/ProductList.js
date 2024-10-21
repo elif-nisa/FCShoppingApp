@@ -18,6 +18,8 @@ import {
 } from 'react-native-vector-icons';
 import Stars from 'react-native-stars';
 import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/store';
 
 const ProductList = ({ route, navigation }) => {
   const { token, userID } = route.params;
@@ -26,6 +28,7 @@ const ProductList = ({ route, navigation }) => {
   const [query, setQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [succsessAddModal, setSuccessModal] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const getProducts = async () => {
@@ -72,30 +75,9 @@ const ProductList = ({ route, navigation }) => {
     }
     return text;
   };
-  const addToCart = async (productId, quantity) => {
-    try {
-      const response = await axios.post(
-        'https://dummyjson.com/carts/add',
-        {
-          userId: userID,
-          products: [
-            {
-              id: productId,
-              quantity: quantity,
-            },
-          ],
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      console.log(response.data);
-     setSuccessModal(true);
-    } catch (error) {
-      console.error('Hata:', error);
-    }
+  const addToCartHandler = (product) => {
+    dispatch(addToCart(product)); 
+    setSuccessModal(true);
   };
   if (loading) {
     return (
@@ -243,7 +225,7 @@ const ProductList = ({ route, navigation }) => {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => addToCart(item.id, 1)}
+                  onPress={() => addToCartHandler(item)}
                   style={{
                     shadowColor: '#000',
                     shadowOffset: {
