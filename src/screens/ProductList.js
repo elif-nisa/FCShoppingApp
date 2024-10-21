@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
 import {
@@ -96,6 +97,13 @@ const ProductList = ({ route, navigation }) => {
       console.error('Hata:', error);
     }
   };
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1, backgroundColor: '#f3f3f3' }}>

@@ -182,7 +182,7 @@ const RegisterScreen = ({ navigation }) => {
             <View style={{ flexDirection: 'row', width: '100%' }}>
               <TouchableOpacity
                 onPress={() => {
-                  setSuccessModalVisible(false);
+                  navigation.navigate('Login')
                 }}
                 style={{ flex: 1 }}
               >
